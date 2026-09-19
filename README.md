@@ -2,69 +2,133 @@
 
 A small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns.
 
-**Status:** scaffold only — build from this README.  
-**Visibility:** private until scrubbed and demo-ready, then publicize.
-
+**Status:** in progress — clean architecture wired, Products slice verified end-to-end against PostgreSQL (Dapper + Npgsql), unit + integration tests green (13 passing), and CI running on PRs and `main`. See checklist below.  
 
 ---
 
 ## Goals (what "done" looks like)
 
-- [ ] ASP.NET Core Web API (.NET 8+)
-- [ ] Clean-ish layout: `Api` / `Application` / `Domain` / `Infrastructure` (or equivalent)
-- [ ] PostgreSQL persistence (EF Core or Dapper — pick one and stick to it)
+- [x] ASP.NET Core Web API (.NET 8+)
+- [x] Clean-ish layout: `Api` / `Application` / `Domain` / `Infrastructure` (or equivalent)
+- [x] PostgreSQL persistence (Dapper; schema in `db/init.sql`, applied by hand)
 - [ ] RabbitMQ messaging demo: publish + consume with **manual ack**, backoff retries, and **DLQ/DLX** (document the topology)
-- [ ] xUnit: unit tests + at least one integration test path
-- [ ] GitHub Actions: restore → build → test on PR / `main`
+- [x] xUnit: unit tests + at least one integration test path
+- [x] GitHub Actions: restore → build → test on PR / `main`
 - [ ] Optional: Prometheus metrics endpoint (wire to `observability-demo` later)
-- [ ] README: architecture sketch, how to run locally, what each pattern shows
-
-**Soft-cut:** do not claim production Docker/K8s ownership here. Compose for local Postgres/RabbitMQ is fine if you mark it as local-dev only.
+- [x] README: architecture sketch, how to run locally, what each pattern shows _(sketch + local run added; per-pattern write-ups pending)_
 
 ---
 
-## Suggested layout
+## Layout
 
 ```text
 src/
-  DotnetApiSample.Api/
-  DotnetApiSample.Application/
-  DotnetApiSample.Domain/
-  DotnetApiSample.Infrastructure/
+  DotnetApiSample.Api/            # controllers + composition root
+  DotnetApiSample.Application/    # ports (interfaces) + request DTOs
+  DotnetApiSample.Domain/         # entities
+  DotnetApiSample.Infrastructure/ # Dapper repositories, Npgsql wiring
 tests/
   DotnetApiSample.UnitTests/
   DotnetApiSample.IntegrationTests/
-.github/workflows/ci.yml
-docker-compose.yml          # local Postgres + RabbitMQ only
+db/
+  init.sql                        # hand-applied schema
+.github/
+  workflows/
+    ci.yml                        # restore -> build -> test
+.env.example
 .gitignore
 LICENSE
 README.md
+DotnetApiSample.slnx
 ```
 
 ---
 
-## Local run (fill in as you build)
+## Architecture
+
+One vertical slice, with dependencies pointing inward:
+
+```text
+ProductsController (Api)
+  -> IProductRepository            (Application port)
+       -> DapperProductRepository  (Infrastructure)
+            -> NpgsqlConnectionFactory -> PostgreSQL
+```
+
+- **Domain** — entities only, no dependencies.
+- **Application** — ports and request DTOs; references only `Domain`, and its ports use BCL types (`IDbConnection`), so no data-access library leaks inward.
+- **Infrastructure** — Dapper + Npgsql implementations; exposes `AddInfrastructure`.
+- **Api** — composition root: controllers and DI wiring.
+
+---
+
+## API
+
+| Method | Route | Result |
+|--------|-------|--------|
+| GET | `/api/products` | 200 — list |
+| GET | `/api/products/{id}` | 200 / 404 |
+| POST | `/api/products` | 201 + `Location` |
+| PUT | `/api/products/{id}` | 204 / 404 |
+| DELETE | `/api/products/{id}` | 204 / 404 |
+
+---
+
+## Local run
+
+Requires the .NET 10 SDK and a reachable PostgreSQL. Bring your own Postgres — no compose file ships with this repo.
 
 ```bash
-# requires .NET 10 SDK
-dotnet restore
+# 1. Create the database and apply the schema by hand
+psql -h localhost -U postgres -c "CREATE DATABASE dotnet_api_sample;"
+psql -h localhost -U postgres -d dotnet_api_sample -f db/init.sql
+
+# 2. Keep the connection string out of the repo (user-secrets)
+dotnet user-secrets set "ConnectionStrings:Postgres" \
+  "Host=localhost;Port=5432;Database=dotnet_api_sample;Username=postgres;Password=<your-password>" \
+  --project src/DotnetApiSample.Api
+# ...or set the environment variable ConnectionStrings__Postgres (see .env.example)
+
+# 3. Run the API
+dotnet run --project src/DotnetApiSample.Api --launch-profile http
+
+# 4. Exercise the Products CRUD (also in src/DotnetApiSample.Api/DotnetApiSample.Api.http)
+curl http://localhost:5291/api/products
+curl -X POST http://localhost:5291/api/products \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Pour-over Set","sku":"POV-004","price":32.00}'
+
+# build / test
 dotnet build
 dotnet test
-# API: dotnet run --project src/DotnetApiSample.Api
 ```
 
-Use `.env.example` for connection strings — never commit real secrets.
+Schema changes are **not** migrated automatically — edit `db/init.sql` and re-apply it by hand.
+
+The connection string is read from configuration key `ConnectionStrings:Postgres`. Locally it comes from **user-secrets**; in other environments set the `ConnectionStrings__Postgres` environment variable. Never commit real secrets.
 
 ---
 
-## CV mapping
+## Tests
 
-| Skill on CV | Show it here |
-|-------------|--------------|
-| C# / ASP.NET Core / REST | Controllers or minimal APIs + clear contracts |
-| PostgreSQL | Migrations + repository/query layer |
-| RabbitMQ | Producer/consumer + DLQ story in README |
-| xUnit | Unit + integration |
-| CI/CD (GitHub Actions) | Green `ci.yml` |
+```bash
+dotnet test
+```
+
+- **UnitTests** (8) — `ProductsController` behaviour (200/404/201/204 mapping and `CreatedAt` routing) against a hand-rolled fake `IProductRepository`. No Docker needed.
+- **IntegrationTests** (5) — full HTTP round-trip through `WebApplicationFactory<Program>` against an ephemeral **Testcontainers** PostgreSQL, with the schema applied from `db/init.sql`. **Requires Docker**; pulls `postgres:17-alpine` on first run.
+
+The fixture pins the environment to `Testing` and injects the container's connection string as a host setting, so local `appsettings`/user-secrets never leak into a test run. Each test truncates and re-seeds `products`, so tests are order-independent — and since the database is ephemeral on a random port, it never touches your local Postgres.
+
+---
+
+## CI
+
+`.github/workflows/ci.yml` runs on pull requests and pushes to `main`: restore → build (Release) → test, on `ubuntu-latest` with the .NET 10 SDK.
+
+- **No secrets required** — the integration tests start their own PostgreSQL through Testcontainers, using the Docker daemon that GitHub-hosted runners provide.
+- **Least privilege** — `permissions: contents: read`; no write token, so forked PRs are safe.
+- **Cost controls** — a single OS (no matrix), `concurrency` cancels superseded runs on the same ref, a 15-minute job timeout, NuGet caching keyed on the csproj files, and `.trx` results uploaded only on failure.
+- **No duplicate runs** — `push` is limited to `main`, so a feature branch is tested once via its PR rather than on every push.
 
 ---

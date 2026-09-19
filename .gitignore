@@ -354,3 +354,6 @@ MigrationBackup/
 
 # Command Code
 /.commandcode/
+
+# Local environment — never commit real secrets
+.env
