@@ -1,11 +1,10 @@
 # dotnet-api-sample
 
-Portfolio sample: a small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns you claim on a Backend/DevOps CV.
+A small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns.
 
 **Status:** scaffold only — build from this README.  
 **Visibility:** private until scrubbed and demo-ready, then publicize.
 
-Not affiliated with any employer. No real customer data.
 
 ---
 
@@ -47,7 +46,7 @@ README.md
 ## Local run (fill in as you build)
 
 ```bash
-# requires .NET 8 SDK
+# requires .NET 10 SDK
 dotnet restore
 dotnet build
 dotnet test
@@ -69,16 +68,3 @@ Use `.env.example` for connection strings — never commit real secrets.
 | CI/CD (GitHub Actions) | Green `ci.yml` |
 
 ---
-
-## Before public
-
-- [ ] No secrets in history
-- [ ] MIT (or chosen) LICENSE
-- [ ] Topics: `dotnet`, `aspnetcore`, `postgresql`, `rabbitmq`, `xunit`
-- [ ] Pin only after StackContract; this is the #2 Backend pin
-
----
-
-## Out of scope
-
-Full-stack UI, Talend, Angular, Kubernetes-mandatory demos, phone-home telemetry.
