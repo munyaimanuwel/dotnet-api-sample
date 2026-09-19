@@ -1,6 +1,42 @@
 @DotnetApiSample.Api_HostAddress = http://localhost:5291
 
-GET {{DotnetApiSample.Api_HostAddress}}/weatherforecast/
+### List products
+GET {{DotnetApiSample.Api_HostAddress}}/api/products
 Accept: application/json
+
+###
+
+### Get product by id
+GET {{DotnetApiSample.Api_HostAddress}}/api/products/1
+Accept: application/json
+
+###
+
+### Create product
+POST {{DotnetApiSample.Api_HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Pour-over Set",
+  "sku": "POV-004",
+  "price": 32.00
+}
+
+###
+
+### Update product
+PUT {{DotnetApiSample.Api_HostAddress}}/api/products/1
+Content-Type: application/json
+
+{
+  "name": "Espresso Machine",
+  "sku": "ESP-001",
+  "price": 279.00
+}
+
+###
+
+### Delete product
+DELETE {{DotnetApiSample.Api_HostAddress}}/api/products/4
 
 ###
