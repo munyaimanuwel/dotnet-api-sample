@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotnetApiSample.Application\DotnetApiSample.Application.csproj" />
-    <ProjectReference Include="..\DotnetApiSample.Domain\DotnetApiSample.Domain.csproj" />
+    <ProjectReference Include="..\..\src\DotnetApiSample.Application\DotnetApiSample.Application.csproj" />
+    <ProjectReference Include="..\..\src\DotnetApiSample.Domain\DotnetApiSample.Domain.csproj" />
   </ItemGroup>
 
 </Project>
