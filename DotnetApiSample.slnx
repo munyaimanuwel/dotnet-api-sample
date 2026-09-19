@@ -4,6 +4,7 @@
     <Project Path="src/DotnetApiSample.Application/DotnetApiSample.Application.csproj" />
     <Project Path="src/DotnetApiSample.Domain/DotnetApiSample.Domain.csproj" />
     <Project Path="src/DotnetApiSample.Infrastructure/DotnetApiSample.Infrastructure.csproj" />
+    <Project Path="src/DotnetApiSample.Worker/DotnetApiSample.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DotnetApiSample.IntegrationTests/DotnetApiSample.IntegrationTests.csproj" />

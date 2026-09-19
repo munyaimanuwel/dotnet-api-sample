@@ -1,4 +1,5 @@
 using DotnetApiSample.Application.Abstractions;
+using DotnetApiSample.Application.Messaging;
 using DotnetApiSample.Application.Products;
 using DotnetApiSample.Domain;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,12 @@ namespace DotnetApiSample.Api.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IProductRepository _repository;
+    private readonly IEventPublisher _eventPublisher;
 
-    public ProductsController(IProductRepository repository)
+    public ProductsController(IProductRepository repository, IEventPublisher eventPublisher)
     {
         _repository = repository;
+        _eventPublisher = eventPublisher;
     }
 
     [HttpGet]
@@ -43,6 +46,19 @@ public class ProductsController : ControllerBase
         };
 
         var created = await _repository.AddAsync(product, cancellationToken);
+
+        // No outbox in this sample: the row is committed before the event is published, so a crash
+        // in between drops the event. Called out in the README.
+        await _eventPublisher.PublishAsync(
+            new ProductCreatedEvent(
+                Guid.NewGuid(),
+                created.Id,
+                created.Sku,
+                created.Name,
+                created.Price,
+                DateTimeOffset.UtcNow),
+            MessageRoutingKeys.ProductCreated,
+            cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
