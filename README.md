@@ -2,7 +2,7 @@
 
 A small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns.
 
-**Status:** in progress — clean architecture wired, Products slice verified end-to-end against PostgreSQL (Dapper + Npgsql), and unit + integration tests green (13 passing). See checklist below.  
+**Status:** in progress — clean architecture wired, Products slice verified end-to-end against PostgreSQL (Dapper + Npgsql), unit + integration tests green (13 passing), and CI running on PRs and `main`. See checklist below.  
 
 ---
 
@@ -13,7 +13,7 @@ A small **ASP.NET Core** API that demonstrates clean architecture, tests, and th
 - [x] PostgreSQL persistence (Dapper; schema in `db/init.sql`, applied by hand)
 - [ ] RabbitMQ messaging demo: publish + consume with **manual ack**, backoff retries, and **DLQ/DLX** (document the topology)
 - [x] xUnit: unit tests + at least one integration test path
-- [ ] GitHub Actions: restore → build → test on PR / `main`
+- [x] GitHub Actions: restore → build → test on PR / `main`
 - [ ] Optional: Prometheus metrics endpoint (wire to `observability-demo` later)
 - [x] README: architecture sketch, how to run locally, what each pattern shows _(sketch + local run added; per-pattern write-ups pending)_
 
@@ -32,6 +32,9 @@ tests/
   DotnetApiSample.IntegrationTests/
 db/
   init.sql                        # hand-applied schema
+.github/
+  workflows/
+    ci.yml                        # restore -> build -> test
 .env.example
 .gitignore
 LICENSE
@@ -116,5 +119,16 @@ dotnet test
 - **IntegrationTests** (5) — full HTTP round-trip through `WebApplicationFactory<Program>` against an ephemeral **Testcontainers** PostgreSQL, with the schema applied from `db/init.sql`. **Requires Docker**; pulls `postgres:17-alpine` on first run.
 
 The fixture pins the environment to `Testing` and injects the container's connection string as a host setting, so local `appsettings`/user-secrets never leak into a test run. Each test truncates and re-seeds `products`, so tests are order-independent — and since the database is ephemeral on a random port, it never touches your local Postgres.
+
+---
+
+## CI
+
+`.github/workflows/ci.yml` runs on pull requests and pushes to `main`: restore → build (Release) → test, on `ubuntu-latest` with the .NET 10 SDK.
+
+- **No secrets required** — the integration tests start their own PostgreSQL through Testcontainers, using the Docker daemon that GitHub-hosted runners provide.
+- **Least privilege** — `permissions: contents: read`; no write token, so forked PRs are safe.
+- **Cost controls** — a single OS (no matrix), `concurrency` cancels superseded runs on the same ref, a 15-minute job timeout, NuGet caching keyed on the csproj files, and `.trx` results uploaded only on failure.
+- **No duplicate runs** — `push` is limited to `main`, so a feature branch is tested once via its PR rather than on every push.
 
 ---
