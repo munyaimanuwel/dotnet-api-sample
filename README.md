@@ -2,19 +2,19 @@
 
 A small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns.
 
-**Status:** in progress — clean architecture wired, Products slice verified end-to-end against PostgreSQL (Dapper), RabbitMQ publish/consume with manual ack and a retry→DLQ ladder verified live and by tests, 17 tests green, and CI running on PRs and `main`. See checklist below.  
+**Status:** complete — clean architecture wired, the Products slice verified end-to-end against PostgreSQL (Dapper), RabbitMQ publish/consume with manual ack and a retry→DLQ ladder verified live and by tests, 17 tests green, and CI running on PRs and `main`. See the checklist below.
 
 ---
 
-## Goals (what "done" looks like)
+## Checklist
 
-- [x] ASP.NET Core Web API (.NET 8+)
+- [x] ASP.NET Core Web API (.NET 10)
 - [x] Clean-ish layout: `Api` / `Application` / `Domain` / `Infrastructure` (or equivalent)
 - [x] PostgreSQL persistence (Dapper; schema in `db/init.sql`, applied by hand)
 - [x] RabbitMQ messaging demo: publish + consume with **manual ack**, backoff retries, and **DLQ/DLX** (document the topology)
 - [x] xUnit: unit tests + at least one integration test path
 - [x] GitHub Actions: restore → build → test on PR / `main`
-- [x] README: architecture sketch, how to run locally, what each pattern shows _(sketch + local run added; per-pattern write-ups pending)_
+- [x] README: architecture sketch, how to run locally, what each pattern shows
 
 ---
 
