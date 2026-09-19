@@ -18,4 +18,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DotnetApiSample.Application\DotnetApiSample.Application.csproj" />
+    <ProjectReference Include="..\DotnetApiSample.Domain\DotnetApiSample.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
