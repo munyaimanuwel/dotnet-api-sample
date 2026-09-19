@@ -2,7 +2,7 @@
 
 A small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns.
 
-**Status:** in progress — clean architecture wired, and the Products slice is verified end-to-end against PostgreSQL (Dapper + Npgsql). See checklist below.  
+**Status:** in progress — clean architecture wired, Products slice verified end-to-end against PostgreSQL (Dapper + Npgsql), and unit + integration tests green (13 passing). See checklist below.  
 
 ---
 
@@ -12,10 +12,10 @@ A small **ASP.NET Core** API that demonstrates clean architecture, tests, and th
 - [x] Clean-ish layout: `Api` / `Application` / `Domain` / `Infrastructure` (or equivalent)
 - [x] PostgreSQL persistence (Dapper; schema in `db/init.sql`, applied by hand)
 - [ ] RabbitMQ messaging demo: publish + consume with **manual ack**, backoff retries, and **DLQ/DLX** (document the topology)
-- [ ] xUnit: unit tests + at least one integration test path _(test projects scaffolded, no tests yet)_
+- [x] xUnit: unit tests + at least one integration test path
 - [ ] GitHub Actions: restore → build → test on PR / `main`
 - [ ] Optional: Prometheus metrics endpoint (wire to `observability-demo` later)
-- [ ] README: architecture sketch, how to run locally, what each pattern shows _(sketch + local run added; per-pattern write-ups pending)_
+- [x] README: architecture sketch, how to run locally, what each pattern shows _(sketch + local run added; per-pattern write-ups pending)_
 
 ---
 
@@ -103,5 +103,18 @@ dotnet test
 Schema changes are **not** migrated automatically — edit `db/init.sql` and re-apply it by hand.
 
 The connection string is read from configuration key `ConnectionStrings:Postgres`. Locally it comes from **user-secrets**; in other environments set the `ConnectionStrings__Postgres` environment variable. Never commit real secrets.
+
+---
+
+## Tests
+
+```bash
+dotnet test
+```
+
+- **UnitTests** (8) — `ProductsController` behaviour (200/404/201/204 mapping and `CreatedAt` routing) against a hand-rolled fake `IProductRepository`. No Docker needed.
+- **IntegrationTests** (5) — full HTTP round-trip through `WebApplicationFactory<Program>` against an ephemeral **Testcontainers** PostgreSQL, with the schema applied from `db/init.sql`. **Requires Docker**; pulls `postgres:17-alpine` on first run.
+
+The fixture pins the environment to `Testing` and injects the container's connection string as a host setting, so local `appsettings`/user-secrets never leak into a test run. Each test truncates and re-seeds `products`, so tests are order-independent — and since the database is ephemeral on a random port, it never touches your local Postgres.
 
 ---
