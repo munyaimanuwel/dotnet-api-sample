@@ -2,7 +2,7 @@
 
 A small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns.
 
-**Status:** scaffold only — build from this README.  
+**Status:** in progress — skeleton builds; clean-architecture layout and project references are wired. See checklist below.  
 **Visibility:** private until scrubbed and demo-ready, then publicize.
 
 
@@ -10,16 +10,14 @@ A small **ASP.NET Core** API that demonstrates clean architecture, tests, and th
 
 ## Goals (what "done" looks like)
 
-- [ ] ASP.NET Core Web API (.NET 8+)
-- [ ] Clean-ish layout: `Api` / `Application` / `Domain` / `Infrastructure` (or equivalent)
+- [x] ASP.NET Core Web API (.NET 8+)
+- [x] Clean-ish layout: `Api` / `Application` / `Domain` / `Infrastructure` (or equivalent)
 - [ ] PostgreSQL persistence (EF Core or Dapper — pick one and stick to it)
 - [ ] RabbitMQ messaging demo: publish + consume with **manual ack**, backoff retries, and **DLQ/DLX** (document the topology)
-- [ ] xUnit: unit tests + at least one integration test path
+- [ ] xUnit: unit tests + at least one integration test path _(test projects scaffolded, no tests yet)_
 - [ ] GitHub Actions: restore → build → test on PR / `main`
 - [ ] Optional: Prometheus metrics endpoint (wire to `observability-demo` later)
 - [ ] README: architecture sketch, how to run locally, what each pattern shows
-
-**Soft-cut:** do not claim production Docker/K8s ownership here. Compose for local Postgres/RabbitMQ is fine if you mark it as local-dev only.
 
 ---
 
@@ -54,17 +52,5 @@ dotnet test
 ```
 
 Use `.env.example` for connection strings — never commit real secrets.
-
----
-
-## CV mapping
-
-| Skill on CV | Show it here |
-|-------------|--------------|
-| C# / ASP.NET Core / REST | Controllers or minimal APIs + clear contracts |
-| PostgreSQL | Migrations + repository/query layer |
-| RabbitMQ | Producer/consumer + DLQ story in README |
-| xUnit | Unit + integration |
-| CI/CD (GitHub Actions) | Green `ci.yml` |
 
 ---
