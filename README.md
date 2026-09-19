@@ -1,20 +1,8 @@
 # dotnet-api-sample
 
-A small **ASP.NET Core** API that demonstrates clean architecture, tests, and the reliability patterns.
+A small **ASP.NET Core** (.NET 10) API that demonstrates a clean-architecture layout, a PostgreSQL-backed CRUD slice, and RabbitMQ reliability patterns.
 
-**Status:** complete — clean architecture wired, the Products slice verified end-to-end against PostgreSQL (Dapper), RabbitMQ publish/consume with manual ack and a retry→DLQ ladder verified live and by tests, 17 tests green, and CI running on PRs and `main`. See the checklist below.
-
----
-
-## Checklist
-
-- [x] ASP.NET Core Web API (.NET 10)
-- [x] Clean-ish layout: `Api` / `Application` / `Domain` / `Infrastructure` (or equivalent)
-- [x] PostgreSQL persistence (Dapper; schema in `db/init.sql`, applied by hand)
-- [x] RabbitMQ messaging demo: publish + consume with **manual ack**, backoff retries, and **DLQ/DLX** (document the topology)
-- [x] xUnit: unit tests + at least one integration test path
-- [x] GitHub Actions: restore → build → test on PR / `main`
-- [x] README: architecture sketch, how to run locally, what each pattern shows
+It exposes a single **Products** vertical slice over HTTP, persists through Dapper + Npgsql, and shows producer/consumer messaging with manual ack, backoff retries, and a dead-letter queue. xUnit covers the slice with unit tests plus Testcontainers-backed integration tests, and GitHub Actions runs restore → build → test on every PR and push to `main`.
 
 ---
 
